@@ -1,0 +1,102 @@
+name: Update Image Paths
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - '**.jpg'
+      - '**.jpeg'
+      - '**.png'
+      - '**.gif'
+      - '**.bmp'
+      - '**.svg'
+      - '**.webp'
+      # 添加其他图片格式
+  pull_request:
+    branches: [ main, master ]
+  # 手动触发
+  workflow_dispatch:
+  # 定时触发（每天凌晨2点）
+  schedule:
+    - cron: '0 2 * * *'
+
+jobs:
+  update-image-paths:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 需要写权限来提交更改
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # 获取所有历史记录
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+    
+    - name: Generate image paths JSON
+      id: generate
+      run: |
+        echo "开始生成图片路径JSON..."
+        python scripts/generate_image_paths.py
+      env:
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_SHA: ${{ github.sha }}
+        GITHUB_RUN_ID: ${{ github.run_id }}
+    
+    - name: Show generated data
+      run: |
+        echo "生成的JSON文件预览:"
+        head -50 image_paths.json
+        echo ""
+        echo "总图片数: ${{ steps.generate.outputs.total_images }}"
+    
+    - name: Commit and push if changed
+      if: github.event_name != 'pull_request'  # 不在PR中提交
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        
+        # 检查是否有变化
+        git add image_paths.json
+        
+        # 尝试提交
+        git diff --quiet && git diff --staged --quiet || \
+          (git commit -m "📸 Auto-update image paths JSON [skip ci]" && \
+           git pull --rebase && \
+           git push)
+        
+        echo "✅ 已更新 image_paths.json"
+    
+    - name: Create PR if on schedule
+      if: github.event_name == 'schedule'
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "📸 Auto-update image paths from scheduled run"
+        title: "📸 Auto-update image paths JSON"
+        body: |
+          ## 自动更新图片路径
+          
+          本次更新由定时任务触发，更新了图片路径的JSON索引。
+          
+          **统计信息:**
+          - 总图片数: ${{ steps.generate.outputs.total_images }}
+          
+          **自动生成的文件:**
+          - `image_paths.json`
+          
+          ---
+          
+          *此PR由GitHub Actions自动创建*
+        branch: update/image-paths
+        delete-branch: true
+        labels: automated, images
