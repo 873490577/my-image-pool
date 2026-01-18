@@ -3,100 +3,56 @@ name: Update Image Paths
 on:
   push:
     branches: [ main, master ]
-    paths:
-      - '**.jpg'
-      - '**.jpeg'
-      - '**.png'
-      - '**.gif'
-      - '**.bmp'
-      - '**.svg'
-      - '**.webp'
-      - 'scripts/**'  # 添加脚本变化也触发
-  pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:
-  schedule:
-    - cron: '0 2 * * *'
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
   update-image-paths:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     
     steps:
+    # 1. 检出代码
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
     
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-        # 移除 cache 配置，因为我们没有 requirements.txt
-    
-    - name: Generate image paths JSON
-      id: generate
+    # 2. 设置Python（不使用缓存）
+    - name: Setup Python
       run: |
-        echo "开始生成图片路径JSON..."
-        python scripts/generate_image_paths.py
-        
-        # 设置输出变量
-        echo "total_images=$(python -c "import json; data=json.load(open('image_paths.json')); print(data['metadata']['total_images'])" )" >> $GITHUB_OUTPUT
-      env:
-        GITHUB_REPOSITORY: ${{ github.repository }}
-        GITHUB_SHA: ${{ github.sha }}
-        GITHUB_RUN_ID: ${{ github.run_id }}
+        sudo apt-get update
+        python3 --version
     
-    - name: Show generated data
+    # 3. 运行我们的脚本
+    - name: Generate image paths
       run: |
-        echo "=== 生成的JSON文件预览 ==="
+        echo "开始生成图片路径索引..."
+        python3 scripts/generate_image_paths.py
+        echo "生成完成！"
+    
+    # 4. 显示结果
+    - name: Show results
+      run: |
         if [ -f "image_paths.json" ]; then
-          head -30 image_paths.json
-          echo ""
-          echo "=== 统计信息 ==="
-          python -c "
-import json
-try:
-    with open('image_paths.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
-    print(f'总图片数: {data[\"metadata\"][\"total_images\"]}')
-    print(f'生成时间: {data[\"metadata\"][\"generated_at\"]}')
-except Exception as e:
-    print(f'读取JSON失败: {e}')
-          "
+          echo "✅ JSON文件已生成"
+          echo "预览前5行:"
+          head -5 image_paths.json
         else
-          echo "❌ image_paths.json 文件不存在"
+          echo "❌ 生成失败"
+          exit 1
         fi
     
-    - name: Commit and push if changed
-      if: github.event_name != 'pull_request'
+    # 5. 提交更改
+    - name: Commit changes
       run: |
-        git config --global user.name "GitHub Actions Bot"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
         
-        echo "=== 检查文件状态 ==="
-        git status
+        # 添加文件
+        git add image_paths.json
         
-        echo "=== 检查是否有图片路径文件 ==="
-        if [ -f "image_paths.json" ]; then
-          echo "✅ image_paths.json 存在，准备提交"
-          
-          # 检查文件是否有变化
-          git add image_paths.json
-          
-          if git diff-index --quiet HEAD --; then
-            echo "⚠️  没有变化，跳过提交"
-          else
-            echo "📝 检测到变化，提交更改"
-            git commit -m "📸 Auto-update image paths JSON [skip ci]"
-            
-            echo "🚀 推送更改"
-            git pull --rebase origin ${{ github.ref_name }}
-            git push origin ${{ github.ref_name }}
-            echo "✅ 已成功更新 image_paths.json"
-          fi
+        # 检查是否有变化
+        if git diff --cached --quiet; then
+          echo "没有变化，跳过提交"
         else
-          echo "❌ image_paths.json 不存在，跳过提交"
+          git commit -m "📸 Auto-update image paths [skip ci]"
+          git push
+          echo "✅ 已提交并推送更改"
         fi
