@@ -1,18 +1,19 @@
 {
   "metadata": {
-    "generated_at": "2026-01-18T11:03:57.107873",
-    "total_images": 1421,
+    "generated_at": "2026-01-18T11:08:56.959111",
+    "total_images": 1423,
     "repository": "873490577/my-image-pool",
-    "commit_sha": "2b406d4dc1505497be59a395499bb18435605d12",
-    "run_id": "21110646019"
+    "commit_sha": "9582a54e78bd15bcba6ef9e78c2268b5cb4bca4e",
+    "run_id": "21110714911"
   },
   "statistics": {
     "by_folder": {
       "images": 252,
-      "images2": 1169
+      "images2": 1169,
+      "images3": 2
     },
     "by_extension": {
-      ".png": 242,
+      ".png": 244,
       ".gif": 10,
       ".webp": 1,
       ".jpg": 1168
@@ -1440,7 +1441,9 @@
       "images2/微信图片_2025-10-27_182305_891.jpg",
       "images2/微信图片_2025-10-27_182332_162.jpg",
       "images2/微信图片_2025-10-27_182334_213.jpg",
-      "images2/微信图片_20260114194631_31885_27.png"
+      "images2/微信图片_20260114194631_31885_27.png",
+      "images3/61aed9a899cb2c8c785672522fefe9c9.png",
+      "images3/fcba9d24cd97897921c7413f800c8e77.png"
     ],
     "by_folder": {
       "images": [
@@ -2867,6 +2870,10 @@
         "images2/微信图片_2025-10-27_182332_162.jpg",
         "images2/微信图片_2025-10-27_182334_213.jpg",
         "images2/微信图片_20260114194631_31885_27.png"
+      ],
+      "images3": [
+        "images3/61aed9a899cb2c8c785672522fefe9c9.png",
+        "images3/fcba9d24cd97897921c7413f800c8e77.png"
       ]
     },
     "by_extension": {
@@ -3112,7 +3119,9 @@
         "images/微信图片_20250509195820.png",
         "images/微信图片_20250608201832.png",
         "images/微信图片_20250608204501.png",
-        "images2/微信图片_20260114194631_31885_27.png"
+        "images2/微信图片_20260114194631_31885_27.png",
+        "images3/61aed9a899cb2c8c785672522fefe9c9.png",
+        "images3/fcba9d24cd97897921c7413f800c8e77.png"
       ],
       ".gif": [
         "images/05BE10C1A9435A269154E2C70C0E4143.gif",
@@ -4301,5 +4310,5 @@
       ]
     }
   },
-  "summary": "Found 1421 image files across 2 folders"
+  "summary": "Found 1423 image files across 3 folders"
 }
